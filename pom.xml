@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Description: Solo POM (with JaCoCo report & Sonar plugin & CI-safe assembly skip).
-    Base: your provided POM
+    Description: Solo POM (JaCoCo + Sonar, default skip assembly; enable in -Prelease)
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -88,8 +87,11 @@
         <maven.compiler.source>11</maven.compiler.source>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <!-- 显式告知 Sonar 覆盖率报告路径 -->
+        <!-- Sonar 覆盖率报告路径（verify 后由 JaCoCo 生成） -->
         <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+
+        <!-- 方案 B：默认全局跳过 assembly；仅在 -Prelease 时开启 -->
+        <maven.assembly.skipAssembly>true</maven.assembly.skipAssembly>
     </properties>
 
     <dependencies>
@@ -314,21 +316,7 @@
                 </executions>
             </plugin>
 
-            <!-- 打包配置（保留原配置） -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>org.b3log.solo.Server</mainClass>
-                            <addClasspath>true</addClasspath>
-                            <classpathPrefix>lib/</classpathPrefix>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
-
+            <!-- 打包（默认被全局属性跳过；仅在 -Prelease 时开启） -->
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
@@ -359,19 +347,12 @@
     </build>
 
     <profiles>
-        <!-- CI 环境：跳过 assembly，避免因 bin.xml 配置不全导致构建失败 -->
+        <!-- 发布时启用：打开 assembly（覆盖全局 skip） -->
         <profile>
-            <id>ci</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <configuration>
-                            <skipAssembly>true</skipAssembly>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
+            <id>release</id>
+            <properties>
+                <maven.assembly.skipAssembly>false</maven.assembly.skipAssembly>
+            </properties>
         </profile>
 
         <profile>
