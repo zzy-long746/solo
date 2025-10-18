@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Description: Solo POM (with JaCoCo report & Sonar plugin ready).
+    Description: Solo POM (with JaCoCo report & Sonar plugin & CI-safe assembly skip).
     Base: your provided POM
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -87,6 +87,9 @@
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- 显式告知 Sonar 覆盖率报告路径 -->
+        <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <dependencies>
@@ -220,7 +223,7 @@
                 </configuration>
             </plugin>
 
-            <!-- JaCoCo：新增 report@verify，生成 target/site/jacoco/jacoco.xml -->
+            <!-- JaCoCo：在 verify 阶段产出 target/site/jacoco/jacoco.xml -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -344,7 +347,7 @@
                 </executions>
             </plugin>
 
-            <!-- 新增：Sonar Maven 插件，方便 mvn sonar:sonar 触发分析 -->
+            <!-- Sonar Maven 插件，便于 mvn sonar:sonar 触发分析 -->
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
@@ -356,8 +359,19 @@
     </build>
 
     <profiles>
+        <!-- CI 环境：跳过 assembly，避免因 bin.xml 配置不全导致构建失败 -->
         <profile>
             <id>ci</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <configuration>
+                            <skipAssembly>true</skipAssembly>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
 
         <profile>
