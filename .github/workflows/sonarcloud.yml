@@ -21,7 +21,7 @@ jobs:
           cache: 'maven'
 
       - name: Build & Test (with JaCoCo)
-        run: mvn -DskipTests=false clean verify
+        run: mvn -DskipTests=false -DskipAssembly=true clean verify
 
       - name: SonarCloud Scan
         env:
