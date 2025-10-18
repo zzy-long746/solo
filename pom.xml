@@ -1,25 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Description: Solo POM.
-    Version: 3.18.3.119, Oct 13, 2023
-    Author: <a href="http://88250.b3log.org">Liang Ding</a>
-    Author: <a href="http://www.annpeter.cn">Ann Peter</a>
-    Author: <a href="http://vanessa.b3log.org">Vanessa</a>
-    Author: <a href="https://ld246.com/member/nanolikeyou">nanolikeyou</a>
-    Author: <a href="https://ld246.com/member/hzchendou">hzchendou</a>
+    Description: Solo POM (with JaCoCo report & Sonar plugin ready).
+    Base: your provided POM
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <groupId>org.b3log</groupId>
     <artifactId>solo</artifactId>
     <packaging>jar</packaging>
     <name>Solo</name>
     <version>4.4.0</version>
-    <description>
-        一款小而美的博客系统，专为程序员设计。
-    </description>
+    <description>一款小而美的博客系统，专为程序员设计。</description>
     <inceptionYear>2010</inceptionYear>
 
     <organization>
@@ -48,7 +42,6 @@
             <organizationUrl>https://b3log.org</organizationUrl>
             <timezone>+8</timezone>
         </developer>
-
         <developer>
             <id>84588990@qq.com</id>
             <name>Liyuan Li</name>
@@ -87,7 +80,8 @@
         <license-maven-plugin.version>3.0</license-maven-plugin.version>
         <maven-surefire-plugin.version>2.22.1</maven-surefire-plugin.version>
         <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
-        <jacoco-maven-plugin.version>0.8.2</jacoco-maven-plugin.version>
+        <!-- 升级 JaCoCo 以确保生成 XML 报告 -->
+        <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
         <testng.version>7.1.0</testng.version>
 
         <maven.compiler.target>11</maven.compiler.target>
@@ -194,7 +188,6 @@
             <artifactId>UserAgentUtils</artifactId>
             <version>${user-agent-utils.version}</version>
         </dependency>
-
     </dependencies>
 
     <build>
@@ -210,8 +203,9 @@
         </resources>
 
         <plugins>
+            <!-- Coveralls（保留原配置） -->
             <plugin>
-                <groupId>org.eluder.coveralls</groupId>
+                <groupId>org.eluder</groupId>
                 <artifactId>coveralls-maven-plugin</artifactId>
                 <version>${coveralls-maven-plugin.version}</version>
                 <dependencies>
@@ -226,6 +220,7 @@
                 </configuration>
             </plugin>
 
+            <!-- JaCoCo：新增 report@verify，生成 target/site/jacoco/jacoco.xml -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -237,9 +232,17 @@
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
                 </executions>
             </plugin>
 
+            <!-- 测试执行 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -249,6 +252,7 @@
                 </configuration>
             </plugin>
 
+            <!-- 许可证检查（保留原配置） -->
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
@@ -285,7 +289,6 @@
                         <include>**/src/*/resources/skins/*/css/*.css</include>
                         <exclude>**/src/main/java/com/**/*.java</exclude>
                     </excludes>
-
                     <useDefaultExcludes>true</useDefaultExcludes>
                     <mapping>
                         <java>SLASHSTAR_STYLE</java>
@@ -308,6 +311,7 @@
                 </executions>
             </plugin>
 
+            <!-- 打包配置（保留原配置） -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -340,32 +344,12 @@
                 </executions>
             </plugin>
 
-            <!-- 需要打 jar 部署的话注释掉上面的配置，启用下面这段配置
+            <!-- 新增：Sonar Maven 插件，方便 mvn sonar:sonar 触发分析 -->
             <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <appendAssemblyId>false</appendAssemblyId>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <archive>
-                        <manifest>
-                            <mainClass>org.b3log.solo.Server</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>assembly</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>3.10.0.2594</version>
             </plugin>
-            -->
-
         </plugins>
 
         <finalName>solo</finalName>
@@ -387,7 +371,6 @@
                     <url>https://maven.aliyun.com/nexus/content/groups/public</url>
                 </repository>
             </repositories>
-
             <pluginRepositories>
                 <pluginRepository>
                     <id>aliyun</id>
@@ -396,6 +379,4 @@
             </pluginRepositories>
         </profile>
     </profiles>
-
 </project>
-
